@@ -1,0 +1,84 @@
+@startuml MedSync Domain Model Diagram
+skinparam classAttributeIconSize 0
+
+' Abstract Superclass for Users
+abstract class User {
+  +userID : String
+  +name : String
+  +email : String
+}
+
+class Admin
+class Nurse
+class Doctor
+class LabTechnician
+
+' Abstract Superclass for Resources
+abstract class Resource {
+  +resourceID : String
+  +name : String
+  +status : Enum {available, reserved}
+}
+
+class ExamRoom {
+  +roomNumber : String
+  +floor : Integer
+}
+
+class MedicalEquipment {
+  +equipmentType : String
+  +serialNumber : String
+}
+
+class Lab {
+  +labType : String
+  +location : String
+}
+
+' Other Domain Entities
+class Booking {
+  +bookingID : String
+  +startTime : DateTime
+  +endTime : DateTime
+  +status : Enum {confirmed, canceled, modified}
+}
+
+class Notification {
+  +notificationID : String
+  +message : String
+  +timestamp : DateTime
+}
+
+class AuditTrail {
+  +auditID : String
+  +action : String
+  +timestamp : DateTime
+}
+
+class ExternalCalendarIntegration {
+  +calendarType : Enum {Google, Outlook}
+  +syncStatus : String
+}
+
+' Inheritance
+Admin --|> User
+Nurse --|> User
+Doctor --|> User
+LabTechnician --|> User
+
+ExamRoom --|> Resource
+MedicalEquipment --|> Resource
+Lab --|> Resource
+
+' Associations
+Nurse "1" -- "0..*" Booking : creates >
+Doctor "1" -- "0..*" Booking : creates >
+Admin "1" -- "0..*" Booking : creates >
+Booking "1" -- "1..*" Resource : reserves >
+Booking "1" -- "0..*" Notification : triggers >
+Booking "1" -- "0..*" AuditTrail : logs >
+Booking "0..*" -- "1" ExternalCalendarIntegration : syncs with >
+Admin "1" -- "0..*" Resource : manages >
+LabTechnician "1" -- "0..*" Resource : manages >
+
+@enduml

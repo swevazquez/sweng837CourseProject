@@ -1,0 +1,32 @@
+@startuml ModifyCancelScheduleSequenceDiagram
+
+actor User
+participant MedSyncController
+participant Booking
+participant ConflictDetector
+participant NotificationService
+participant DatabaseHandler
+
+User -> MedSyncController : modifyOrCancelBooking(bookingID, newDetails)
+MedSyncController -> DatabaseHandler : retrieveBooking(bookingID)
+DatabaseHandler --> MedSyncController : Booking
+
+alt Modify Booking
+  MedSyncController -> ConflictDetector : checkForConflicts(newDetails)
+  ConflictDetector -> DatabaseHandler : queryExistingBookings(Resource, timeFrame)
+  ConflictDetector --> MedSyncController : conflictStatus
+
+  alt No Conflict
+    MedSyncController -> Booking : updateBooking(newDetails)
+    Booking -> DatabaseHandler : save(Booking)
+    MedSyncController -> NotificationService : notify(Booking)
+  else Conflict Detected
+    MedSyncController -> User : notifyConflict()
+  end
+else Cancel Booking
+  MedSyncController -> Booking : cancelBooking()
+  Booking -> DatabaseHandler : save(Booking)
+  MedSyncController -> NotificationService : notify(Booking)
+end
+
+@enduml

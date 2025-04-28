@@ -1,0 +1,64 @@
+@startuml MedSync Deployment Diagram
+
+node "AWS Cloud" {
+  
+  node "Frontend Cluster" {
+    [PatientPortal]
+    [DoctorDashboard]
+    [AdminDashboard]
+  }
+
+  node "Backend Cluster" {
+    node "Application Server" {
+      [MedSyncController]
+      [PatientService]
+      [BookingService]
+      [NotificationService]
+      [UserService]
+      [ResourceService]
+      [ExternalCalendarIntegration]
+      [ConflictDetector]
+    }
+
+    node "Database Servers" {
+      [PatientDB : PostgreSQL]
+      [BookingDB : PostgreSQL]
+      [NotificationDB : PostgreSQL]
+      [UserDB : PostgreSQL]
+      [ResourceDB : PostgreSQL]
+    }
+
+    node "Message Queue Server" {
+      [Message Queue]
+    }
+  }
+
+  node "External Systems" {
+    [External Calendar API (Google/Outlook)]
+  }
+}
+
+' Frontend communication
+[PatientPortal] --> [MedSyncController] : HTTPS (443)
+[DoctorDashboard] --> [MedSyncController] : HTTPS (443)
+[AdminDashboard] --> [MedSyncController] : HTTPS (443)
+
+' Controller to Services
+[MedSyncController] --> [PatientService]
+[MedSyncController] --> [BookingService]
+[MedSyncController] --> [NotificationService]
+[MedSyncController] --> [UserService]
+[MedSyncController] --> [ResourceService]
+
+' Services to their Databases
+[PatientService] --> [PatientDB : PostgreSQL] : JDBC (5432)
+[BookingService] --> [BookingDB : PostgreSQL] : JDBC (5432)
+[NotificationService] --> [NotificationDB : PostgreSQL] : JDBC (5432)
+[UserService] --> [UserDB : PostgreSQL] : JDBC (5432)
+[ResourceService] --> [ResourceDB : PostgreSQL] : JDBC (5432)
+
+' Other service interactions
+[NotificationService] --> [Message Queue] : AMQP (5672)
+[ExternalCalendarIntegration] --> [External Calendar API (Google/Outlook)] : HTTPS (443)
+
+@enduml

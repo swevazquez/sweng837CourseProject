@@ -1,0 +1,27 @@
+@startuml ScheduleResourceSequenceDiagram
+
+actor User
+participant MedSyncController
+participant Booking
+participant ResourceFactory
+participant Resource
+participant ConflictDetector
+participant NotificationService
+participant DatabaseHandler
+
+User -> MedSyncController : scheduleResource(resourceType, startTime, endTime)
+MedSyncController -> ResourceFactory : createResource()
+ResourceFactory -> Resource : <<create>>
+MedSyncController -> ConflictDetector : checkForConflicts(Resource, startTime, endTime)
+ConflictDetector -> DatabaseHandler : queryExistingBookings(Resource, timeFrame)
+ConflictDetector --> MedSyncController : conflictStatus
+
+alt No Conflict
+  MedSyncController -> Booking : createBooking(Resource, startTime, endTime)
+  Booking -> DatabaseHandler : save(Booking)
+  MedSyncController -> NotificationService : notify(Booking)
+else Conflict Detected
+  MedSyncController -> User : notifyConflict()
+end
+
+@enduml

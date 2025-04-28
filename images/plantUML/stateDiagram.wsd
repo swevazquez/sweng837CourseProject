@@ -1,0 +1,12 @@
+@startuml State Diagram
+[*] --> New
+
+New --> Confirmed : createBooking()
+Confirmed --> Modified : modifyBooking()
+Modified --> Confirmed : confirmChanges()
+Confirmed --> Canceled : cancelBooking()
+Confirmed --> Completed : completeBooking()
+
+Canceled --> [*]
+Completed --> [*]
+@enduml

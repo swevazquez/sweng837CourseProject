@@ -1,0 +1,174 @@
+@startuml MedSync Class Diagram
+
+skinparam classAttributeIconSize 0
+
+' =========================
+' Resource Abstract Factory
+' =========================
+interface ResourceFactory {
+  +createResource() : Resource
+}
+
+abstract class Resource {
+  +resourceID : String
+  +name : String
+  +status : Enum {available, reserved}
+}
+
+class ExamRoom {
+  +roomNumber : String
+  +floor : Integer
+}
+class MedicalEquipment {
+  +equipmentType : String
+  +serialNumber : String
+}
+class Lab {
+  +labType : String
+  +location : String
+}
+
+class ExamRoomFactory {
+  +createResource() : ExamRoom
+}
+class MedicalEquipmentFactory {
+  +createResource() : MedicalEquipment
+}
+class LabFactory {
+  +createResource() : Lab
+}
+
+' Inheritance and dependencies
+ResourceFactory <|.. ExamRoomFactory
+ResourceFactory <|.. MedicalEquipmentFactory
+ResourceFactory <|.. LabFactory
+Resource <|.. ExamRoom
+Resource <|.. MedicalEquipment
+Resource <|.. Lab
+ExamRoomFactory ..> ExamRoom : <<create>>
+MedicalEquipmentFactory ..> MedicalEquipment : <<create>>
+LabFactory ..> Lab : <<create>>
+
+' =====================
+' Observer Pattern for Notifications
+' =====================
+interface NotificationChannel {
+  +update(booking : Booking) : void
+}
+
+class NotificationService {
+  +addObserver(observer : NotificationChannel)
+  +removeObserver(observer : NotificationChannel)
+  +notifyObservers(booking : Booking)
+}
+
+class EmailNotification
+class SMSNotification
+class InAppNotification
+
+NotificationChannel <|.. EmailNotification
+NotificationChannel <|.. SMSNotification
+NotificationChannel <|.. InAppNotification
+
+' =====================
+' Core Domain Entities
+' =====================
+class Booking {
+  +bookingID : String
+  +startTime : DateTime
+  +endTime : DateTime
+  +status : Enum {confirmed, canceled, modified}
+}
+
+class AuditTrail {
+  +auditID : String
+  +action : String
+  +timestamp : DateTime
+}
+
+class ExternalCalendarIntegration {
+  +calendarType : Enum {Google, Outlook}
+  +syncStatus : String
+}
+
+' =====================
+' Adapter Pattern for External Calendar Integration
+' =====================
+interface CalendarAdapter {
+  +syncBooking(booking : Booking) : void
+}
+
+class GoogleCalendarAdapter {
+  +syncBooking(booking : Booking) : void
+}
+
+class OutlookCalendarAdapter {
+  +syncBooking(booking : Booking) : void
+}
+
+CalendarAdapter <|.. GoogleCalendarAdapter
+CalendarAdapter <|.. OutlookCalendarAdapter
+
+ExternalCalendarIntegration --> CalendarAdapter : uses >
+
+' =====================
+' User Hierarchy
+' =====================
+abstract class User {
+  +userID : String
+  +name : String
+  +email : String
+}
+class Admin
+class Nurse
+class Doctor
+class LabTechnician
+
+User <|-- Admin
+User <|-- Nurse
+User <|-- Doctor
+User <|-- LabTechnician
+
+' =====================
+' Associations
+' =====================
+User "1" -- "0..*" Booking : creates >
+Booking --> ResourceFactory : uses >
+Booking --> Resource : reserves >
+Booking --> NotificationService : triggers >
+Booking --> AuditTrail : logs >
+Booking --> ExternalCalendarIntegration : syncs with >
+NotificationService --> NotificationChannel : notifies >
+
+' ======= Conflict Detection (Pure Fabrication) =======
+
+class ConflictDetector {
+  +detectConflict(resourceType : String, startTime : DateTime, endTime : DateTime) : boolean
+}
+
+Booking --> ConflictDetector : uses
+
+' =====================
+' Controller (GRASP Pattern)
+' =====================
+class MedSyncController <<controller>> {
+  +manageUser(userDetails) : void
+  +scheduleBooking(bookingDetails) : void
+  +modifyBooking(bookingID, updates) : void
+  +cancelBooking(bookingID) : void
+}
+
+' Controller associations
+MedSyncController --> User : manages >
+MedSyncController --> Booking : schedules/modifies >
+MedSyncController --> NotificationService : triggers >
+MedSyncController --> ConflictDetector : checks >
+MedSyncController --> DatabaseHandler : persists >
+
+' Existing DatabaseHandler as a Pure Fabrication
+class DatabaseHandler {
+  +save(entity)
+  +retrieve(entityID)
+}
+
+@enduml

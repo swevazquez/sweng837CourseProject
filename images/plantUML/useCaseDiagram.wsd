@@ -1,0 +1,59 @@
+@startuml MedSync Use Case Diagram
+left to right direction
+
+actor Admin
+actor Doctor
+actor Nurse
+actor LabTechnician
+
+' Supporting actors positioned on the right
+actor "Notification System" as NotificationSystem
+actor "External Calendar System" as ExternalCalendar
+
+rectangle MedSync {
+  usecase "Schedule Resource" as UC1
+  usecase "Modify/Cancel Schedule" as UC2
+  usecase "Manage Users (RBAC)" as UC3
+  usecase "Search and Filter Resources" as UC4
+  usecase "Manage Resources" as UC4B
+  usecase "Maintain Audit Trail" as UC5
+  
+  ' Supporting behaviors (automatic system responsibilities)
+  usecase "Detect Booking Conflict" as UC6
+  usecase "Send Notifications" as UC7
+  usecase "Synchronize with External Calendar" as UC8
+}
+
+' Primary actor associations
+Admin --> UC1
+Admin --> UC2
+Admin --> UC3
+Admin --> UC4
+Admin --> UC4B
+
+Doctor --> UC1
+Doctor --> UC2
+Doctor --> UC4
+
+Nurse --> UC1
+Nurse --> UC2
+Nurse --> UC4
+
+LabTechnician --> UC4
+LabTechnician --> UC4B
+
+' System responsibilities triggered by use cases
+UC1 --> UC5 : <<include>> 
+UC2 --> UC5 : <<include>>
+UC1 --> UC6 : <<include>>
+UC2 --> UC6 : <<include>>
+UC1 --> UC7 : <<include>>
+UC2 --> UC7 : <<include>>
+UC1 --> UC8 : <<include>>
+UC2 --> UC8 : <<include>>
+
+' Supporting system associations
+UC7 --> NotificationSystem
+UC8 --> ExternalCalendar
+
+@enduml

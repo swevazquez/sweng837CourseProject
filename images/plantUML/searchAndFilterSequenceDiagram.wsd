@@ -1,0 +1,16 @@
+@startuml Search and Filter Resources Sequence Diagram
+
+actor User
+participant MedSyncController
+participant Resource
+participant DatabaseHandler
+
+== Search/Filter Workflow ==
+User -> MedSyncController : searchResources(criteria)
+MedSyncController -> DatabaseHandler : queryResources(criteria)
+DatabaseHandler -> Resource : fetch matching resources
+Resource --> DatabaseHandler : return resource list
+DatabaseHandler --> MedSyncController : return resource list
+MedSyncController --> User : display matching resources
+
+@enduml

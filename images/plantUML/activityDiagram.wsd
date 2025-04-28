@@ -1,0 +1,26 @@
+@startuml Activity Diagram
+|Actor|
+start
+:Initiate scheduling request;
+
+|MedSync System|
+:Check resource availability;
+:Detect conflicts;
+
+|ConflictDetector|
+if (Conflict found?) then (yes)
+  |MedSync System|
+  :Notify user of conflict;
+  stop
+else (no)
+  |MedSync System|
+  :Create booking;
+  |NotificationService|
+  :Send notifications;
+  |ExternalCalendarIntegration|
+  :Sync with external calendar;
+endif
+
+|Actor|
+stop
+@enduml

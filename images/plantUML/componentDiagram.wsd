@@ -1,0 +1,60 @@
+@startuml MedSync Component Diagram
+
+' Frontend Layer
+package "Frontend Layer" {
+  [PatientPortal]
+  [DoctorDashboard]
+  [AdminDashboard]
+}
+
+' Backend Services Layer
+package "Backend Services Layer" {
+  [MedSyncController]
+  [PatientService]
+  [BookingService]
+  [NotificationService]
+  [UserService]
+  [ResourceService]
+  [ExternalCalendarIntegration]
+}
+
+' Supporting Components Layer
+package "Supporting Components Layer" {
+  [DatabaseHandler]
+  [ConflictDetector]
+}
+
+' Infrastructure Layer
+package "Infrastructure Layer" {
+  [PostgreSQL Database]
+  [Message Queue]
+  [External Calendar API (Google/Outlook)]
+}
+
+' Frontend to Controller Communication
+[PatientPortal] --> [MedSyncController] : REST API (HTTPS)
+[DoctorDashboard] --> [MedSyncController] : REST API (HTTPS)
+[AdminDashboard] --> [MedSyncController] : REST API (HTTPS)
+
+' Controller to Backend Services Communication
+[MedSyncController] --> [PatientService]
+[MedSyncController] --> [BookingService]
+[MedSyncController] --> [NotificationService]
+[MedSyncController] --> [UserService]
+[MedSyncController] --> [ResourceService]
+
+' Backend Services Dependencies
+[PatientService] --> [DatabaseHandler] : DB Access
+[BookingService] --> [DatabaseHandler] : DB Access
+[BookingService] --> [ConflictDetector] : Checks Conflicts
+[BookingService] --> [NotificationService] : Sends Notifications
+[BookingService] --> [ExternalCalendarIntegration] : Syncs Bookings
+[UserService] --> [DatabaseHandler] : DB Access
+[ResourceService] --> [DatabaseHandler] : DB Access
+
+' Supporting Components to Infrastructure
+[DatabaseHandler] --> [PostgreSQL Database] : JDBC
+[NotificationService] --> [Message Queue] : Publishes Events
+[ExternalCalendarIntegration] --> [External Calendar API (Google/Outlook)] : Adapter
+
+@enduml

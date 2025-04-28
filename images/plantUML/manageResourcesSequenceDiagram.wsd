@@ -1,0 +1,30 @@
+@startuml ManageResourcesSequenceDiagram
+
+actor Admin
+participant MedSyncController
+participant ResourceFactory
+participant Resource
+participant DatabaseHandler
+participant NotificationService
+
+Admin -> MedSyncController : addResource(resourceType, resourceDetails)
+
+alt Add Resource
+  MedSyncController -> ResourceFactory : createResource(resourceType, resourceDetails)
+  ResourceFactory --> MedSyncController : Resource
+  MedSyncController -> DatabaseHandler : save(Resource)
+  MedSyncController -> NotificationService : notify(Resource added)
+else Edit Resource
+  MedSyncController -> DatabaseHandler : retrieveResource(resourceID)
+  DatabaseHandler --> MedSyncController : Resource
+  MedSyncController -> Resource : update(details)
+  Resource -> DatabaseHandler : save(Resource)
+  MedSyncController -> NotificationService : notify(Resource updated)
+else Remove Resource
+  MedSyncController -> DatabaseHandler : retrieveResource(resourceID)
+  DatabaseHandler --> MedSyncController : Resource
+  MedSyncController -> DatabaseHandler : delete(Resource)
+  MedSyncController -> NotificationService : notify(Resource removed)
+end
+
+@enduml

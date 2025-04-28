@@ -1,0 +1,21 @@
+@startuml Manage Users Sequence Diagram
+actor Admin
+participant MedSyncController
+participant User
+participant AuditTrail
+participant DatabaseHandler
+
+Admin -> MedSyncController : manageUser(userDetails)
+MedSyncController -> MedSyncController : validateUserDetails(userDetails)
+alt new user
+  MedSyncController -> User : create(userDetails)
+else update user
+  MedSyncController -> User : update(userDetails)
+end
+MedSyncController -> DatabaseHandler : save(:User)
+
+MedSyncController -> AuditTrail : logAction("User created/updated", timestamp)
+MedSyncController -> DatabaseHandler : save(:AuditTrail)
+
+MedSyncController --> Admin : confirmation(success or failure)
+@enduml
